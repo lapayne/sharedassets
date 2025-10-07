@@ -17,7 +17,7 @@ jobs:
     - name: login to ghcr
       run: oras login -u ${{ github.actor }} -p "${{ secrets.GH_TOKEN }}" ghcr.io
     - name: copy java database
-      run: oras cp ghcr.io/aquasecurity/trivy-java-db:1 ghcr.io/vmddte/vmd.infrastructure.aquasecurity/trivy-java-db:1 
+      run: oras cp ghcr.io/aquasecurity/trivy-java-db:1 ghcr.io/lapayne/sharedassets/trivy-java-db:1 
     - name: copy DB
-      run: oras cp ghcr.io/aquasecurity/trivy-db:2 ghcr.io/vmddte/vmd.infrastructure.aquasecurity/trivy-db:2
+      run: oras cp ghcr.io/aquasecurity/trivy-db:2 ghcr.io/lapayne/sharedassets/trivy-db:2
     
