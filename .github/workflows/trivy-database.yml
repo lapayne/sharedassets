@@ -1,39 +1,23 @@
-name: mirror-trivy-databases
 on:
-  schedule:
-    - cron: "30 3 * * *"   # nightly
   workflow_dispatch:
-
-permissions:
-  contents: write
+  schedule:
+  - cron: "* */3 * * *"
 
 jobs:
-  mirror:
+  get-trivy-dbs:
     runs-on: ubuntu-latest
+    env:
+      ORG_GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+      REPO_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
     steps:
-      - name: Install latest Trivy
-        run: |
-          set -euo pipefail
-          curl -fsSL https://aquasecurity.github.io/trivy-repo/deb/public.key | sudo gpg --dearmor -o /usr/share/keyrings/trivy.gpg
-          echo "deb [signed-by=/usr/share/keyrings/trivy.gpg] https://aquasecurity.github.io/trivy-repo/deb stable main" | sudo tee /etc/apt/sources.list.d/trivy.list
-          sudo apt-get update
-          sudo apt-get install -y trivy
+    - name: setup-oras
+      uses: oras-project/setup-oras@v1.2.1
 
-      - name: Pre-download Trivy databases (DB + Java DB)
-        env:
-          TRIVY_CACHE_DIR: ${{ runner.temp }}/trivy-cache
-        run: |
-          set -euo pipefail
-          mkdir -p "$TRIVY_CACHE_DIR"
-          # Pull the vulnerability DB and Java DB into the cache without scanning
-          trivy image --download-db-only
-          trivy image --download-java-db-only
-          tar -czf trivy-cache.tgz -C "$TRIVY_CACHE_DIR" .
-
-      - name: Publish (replace) the 'latest' release
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          set -euo pipefail
-          gh release delete latest -y || true
-          gh release create latest trivy-cache.tgz -t latest -n "Nightly mirror of Trivy databases"
+    - name: login to ghcr
+      run: oras login -u "VMD-IT" -p "${{ secrets.GH_TOKEN }}" ghcr.io
+    - name: copy java database
+      run: oras cp ghcr.io/aquasecurity/trivy-java-db:1 ghcr.io/vmddte/vmd.infrastructure.aquasecurity/trivy-java-db:1 
+    - name: copy DB
+      run: oras cp ghcr.io/aquasecurity/trivy-db:2 ghcr.io/vmddte/vmd.infrastructure.aquasecurity/trivy-db:2
+    
