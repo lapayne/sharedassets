@@ -15,7 +15,7 @@ jobs:
       uses: oras-project/setup-oras@v1.2.1
 
     - name: login to ghcr
-      run: oras login -u "VMD-IT" -p "${{ secrets.GH_TOKEN }}" ghcr.io
+      run: oras login -u ${{ github.actor }} -p "${{ secrets.GITHUB_TOKEN }}" ghcr.io
     - name: copy java database
       run: oras cp ghcr.io/aquasecurity/trivy-java-db:1 ghcr.io/vmddte/vmd.infrastructure.aquasecurity/trivy-java-db:1 
     - name: copy DB
