@@ -1,0 +1,31 @@
+name: mirror-trivy-offline-db
+on:
+  schedule:
+    - cron: "30 3 * * *"   # 03:30 UTC nightly
+  workflow_dispatch:
+
+permissions:
+  contents: write   # required to create releases
+
+jobs:
+  mirror:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Fetch latest Trivy offline DB
+        run: |
+          set -euo pipefail
+          curl -fsSL -o trivy-offline.db.tgz \
+            https://github.com/aquasecurity/trivy-db/releases/latest/download/trivy-offline.db.tgz
+
+          # Basic sanity check (small files mean you got HTML or an error page)
+          [ "$(stat -c%s trivy-offline.db.tgz)" -gt 5000000 ]
+
+      - name: Publish release with DB asset
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          TAG="trivy-db-$(date -u +%Y%m%d%H%M)"
+          gh release create "$TAG" trivy-offline.db.tgz \
+            -t "$TAG" \
+            -n "Mirror of Trivy offline DB for $(date -u +"%Y-%m-%d %H:%M UTC")"
