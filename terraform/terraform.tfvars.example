@@ -1,0 +1,6 @@
+project_name      = "My Firebase Project"
+project_id        = "my-firebase-project-id"
+billing_account   = "000000-000000-000000"
+region            = "us-central1"
+backend_bucket    = "my-terraform-state-bucket"
+backend_prefix    = "terraform/state"
